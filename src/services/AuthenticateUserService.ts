@@ -1,44 +1,42 @@
-import { FindRelationsNotFoundError, getCustomRepository } from "typeorm"
-import { compare } from "bcryptjs"
+import { getCustomRepository } from "typeorm";
+import { compare } from "bcryptjs";
+import { UsersRepositories } from "../repositories/UsersRepositories";
 import { sign } from "jsonwebtoken"
-import { UsersRepositories } from "../repositories/UsersRepositories"
 
 interface IAuthenticateRequest {
-  email: string;
-  password: string;
+    email: string;
+    password: string
+
 }
 
 class AuthenticateUserService {
-  async execute({ email, password }: IAuthenticateRequest) {
-    const userRepositories = getCustomRepository(UsersRepositories);
+    async execute({ email, password }: IAuthenticateRequest) {
 
-    //Verificar se email existe
-    const user = await userRepositories.findOne({
-      email
-    });
+        const usersRepositories = getCustomRepository(UsersRepositories);
 
-    if (!user) {
-      throw new Error("Email/Password incorrect")
+        // verifica se usuário existe
+        const user = await usersRepositories.findOne({ email });
+
+        if (!user) {
+            throw new Error("Email/Password incorrect");
+        }
+
+        // Verifica se senha está correta
+        const passwordMatch = await compare(password, user.password);
+
+        if (!passwordMatch) {
+            throw new Error("Email/Password incorrect");
+        }
+
+        const token = sign({
+            email: user.email
+        }, "e4bf59c2554e9d9534bd59405d071029", {
+            subject: user.id,
+            expiresIn: "1d"
+        })
+
+        return token;
     }
-
-    //Verificar se senha está correta
-    const passwordMatch = await compare(password, user.password);
-    if (!passwordMatch) {
-      throw new Error("Email/Password incorrect")
-    }
-
-    //Gerar token
-    const token = sign({
-      email: user.email
-    }, "77f0ac88fc35e6fc9dc0ec1e91bed325", {
-      subject: user.id,
-      expiresIn: "1d"
-    }
-    );
-
-    return token;
-  }
 }
-
 
 export { AuthenticateUserService }

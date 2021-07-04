@@ -1,5 +1,6 @@
 import {Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn} from "typeorm";
-import { v4 as uuid } from "uuid"
+import { v4 as uuid  } from "uuid"
+import { Exclude } from "class-transformer";
 
 @Entity("users")
 class User {
@@ -15,14 +16,15 @@ class User {
     @Column()
     admin: boolean;
 
-    @Column()
-    password: string;
-
     @CreateDateColumn()
     created_at: Date;
 
     @UpdateDateColumn()
     updated_at: Date;
+
+    @Exclude()
+    @Column()
+    password: string;
 
     constructor(){
         if(!this.id){
@@ -31,6 +33,5 @@ class User {
     }
 }
 
-export { User };
-
+export { User }
 
